@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frontend
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Local project/runtime data
+results/
+weights/
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Docker/local overrides
+docker-compose.override.yml

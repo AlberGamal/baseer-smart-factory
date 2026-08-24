@@ -1,0 +1,14 @@
+# Shared image for every model worker. The specific worker module is selected
+# per-service in docker-compose via the WORKER_MODULE environment variable.
+FROM python:3.11-slim
+
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
+
+COPY models/requirements.txt ./models/requirements.txt
+RUN pip install --no-cache-dir -r models/requirements.txt
+
+COPY models/ ./models/
+
+# WORKER_MODULE e.g. models.defect.worker
+CMD ["sh", "-c", "python -m ${WORKER_MODULE}"]

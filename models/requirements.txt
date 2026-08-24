@@ -1,0 +1,7 @@
+# Base deps for the worker scaffolds (HTTP posting uses the stdlib).
+# Add the real model libraries when plugging in weights, e.g.:
+#   onnxruntime        # defect (STPM)
+#   ultralytics        # safety (YOLO PPE) / fire-smoke
+#   opencv-python-headless
+#   face-recognition   # attendance
+#   watchdog           # defect folder watching

@@ -1,0 +1,120 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: baseer_postgres
+    env_file: [.env]
+    ports:
+      - "5432:5432"
+    volumes:
+      - baseer_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-baseer}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.api
+    container_name: baseer_api
+    env_file: [.env]
+    environment:
+      - POSTGRES_HOST=postgres
+      - ALLOW_SELF_REGISTRATION=${ALLOW_SELF_REGISTRATION:-false}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # One-shot: enrol employees + manager login (no fake events). Run on first boot.
+  bootstrap:
+    build: { context: .., dockerfile: Docker/Dockerfile.bootstrap }
+    container_name: baseer_bootstrap
+    env_file: [.env]
+    environment:
+      - POSTGRES_HOST=postgres
+      - BOOTSTRAP_MANAGER_USERNAME=${BOOTSTRAP_MANAGER_USERNAME}
+      - BOOTSTRAP_MANAGER_PASSWORD=${BOOTSTRAP_MANAGER_PASSWORD}
+      - BOOTSTRAP_EMPLOYEE_PASSWORD=${BOOTSTRAP_EMPLOYEE_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile.dashboard
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    container_name: baseer_dashboard
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # ── Model workers ─────────────────────────────────────────────────────
+  # Each runs a worker scaffold that POSTs detections to the API's /ingest/*
+  # endpoints. Mount the real weights into /app/model and replace detect().
+  defect_model:
+    build: { context: .., dockerfile: Docker/Dockerfile.model }
+    container_name: baseer_model_defect
+    environment:
+      - WORKER_MODULE=models.defect.worker
+      - BASEER_API_URL=http://api:8000
+      - BASEER_INGEST_KEY=${BASEER_INGEST_KEY}
+    # volumes: [ "../weights/defect:/app/model", "../All images:/app/images" ]
+    depends_on: [api]
+    restart: unless-stopped
+
+  attendance_model:
+    build: { context: .., dockerfile: Docker/Dockerfile.model }
+    container_name: baseer_model_attendance
+    environment:
+      - WORKER_MODULE=models.attendance.worker
+      - BASEER_API_URL=http://api:8000
+      - BASEER_INGEST_KEY=${BASEER_INGEST_KEY}
+    depends_on: [api]
+    restart: unless-stopped
+
+  safety_model:
+    build: { context: .., dockerfile: Docker/Dockerfile.model }
+    container_name: baseer_model_safety
+    environment:
+      - WORKER_MODULE=models.safety.worker
+      - BASEER_API_URL=http://api:8000
+      - BASEER_INGEST_KEY=${BASEER_INGEST_KEY}
+    depends_on: [api]
+    restart: unless-stopped
+
+  fire_model:
+    build: { context: .., dockerfile: Docker/Dockerfile.model }
+    container_name: baseer_model_fire
+    environment:
+      - WORKER_MODULE=models.fire.worker
+      - BASEER_API_URL=http://api:8000
+      - BASEER_INGEST_KEY=${BASEER_INGEST_KEY}
+    depends_on: [api]
+    restart: unless-stopped
+
+  # ── Telegram notifier (godfather) — optional ──────────────────────────
+  # telegram:
+  #   build: { context: .., dockerfile: Docker/Dockerfile.telegram }
+  #   container_name: baseer_telegram
+  #   env_file: [.env]
+  #   environment: [ "POSTGRES_HOST=postgres" ]
+  #   depends_on:
+  #     postgres: { condition: service_healthy }
+  #   restart: unless-stopped
+
+volumes:
+  baseer_data:
+
+networks:
+  default:
+    name: baseer_network

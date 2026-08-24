@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
+
+COPY bootstrap/requirements.txt ./bootstrap/requirements.txt
+RUN pip install --no-cache-dir -r bootstrap/requirements.txt
+
+COPY Database/ ./Database/
+COPY api/ ./api/
+COPY bootstrap/ ./bootstrap/
+
+CMD ["python", "-m", "bootstrap.seed_base"]

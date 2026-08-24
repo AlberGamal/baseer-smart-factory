@@ -1,0 +1,14 @@
+**/node_modules
+**/__pycache__
+**/dist
+**/.venv
+**/venv
+**/*.pyc
+**/.pytest_cache
+.env
+**/.env
+**/*.zip
+**/*.log
+weights/
+results/
+.git
