@@ -8,6 +8,33 @@ Baseer (بصير) is a **smart-factory operations platform with AI/computer-visi
 
 > **Honest implementation status:** the platform, database, dashboard, authentication, event ingestion, alerting, and model-worker integration architecture are implemented. The four included model workers are **synthetic scaffolds** that emit demo events; they are not trained production models. This repository contains no real dataset, model weights, accuracy/F1/mAP metrics, inference benchmark, or production-detection claim.
 
+## Original Graduation Project vs. Public Repository
+
+### Original graduation project
+
+The original graduation-project prototype was developed around four computer-vision modules and an event-driven smart-factory platform. The graduation documentation and presentation describe the following project components:
+
+| Original project component | Documented approach or integration |
+|---|---|
+| Fabric anomaly detection | STPM student–teacher anomaly detection with an ONNX-oriented edge deployment design |
+| PPE compliance | YOLO-based detection of personnel and safety equipment |
+| Face attendance | RetinaFace detection, ArcFace/InsightFace embeddings, matching, and anti-fraud safeguards |
+| Fire and smoke | YOLO-based visual fire/smoke detection and alerting |
+| Edge/system architecture | Event-driven camera processing, batching, shared inference, and PostgreSQL as the operational source of truth |
+| Operations and hardware | React dashboard, FastAPI backend, Telegram alerting, and Arduino/conveyor actuation integration |
+
+This section represents the **original graduation-project scope and documented prototype work**. It does not claim that all original ML artifacts are currently reproducible from this public repository.
+
+### Public repository
+
+The current public repository is the cleaned and published platform/integration snapshot. It contains the FastAPI backend, PostgreSQL integration, React/Vite dashboard, authentication and authorization, event-ingestion APIs, alert and business logic, model-worker contracts, Docker Compose deployment, project-specific CI, and synthetic demonstration workers.
+
+The current workers intentionally emit synthetic events through the real ingestion boundary. They are integration scaffolds, not trained-model inference. The synthetic demo instructions below are therefore a demonstration of platform behavior and event flow, not evidence of live computer-vision predictions.
+
+### Reproducibility status
+
+The public repository does not currently include the original trained model weights, datasets, training scripts, evaluation tooling, or original live inference services. Therefore, historical model results described in the graduation documentation are not independently reproducible from this repository alone. This is a **repository-scope statement**: it describes what is preserved in this public source snapshot and does not negate the original graduation-project prototype work.
+
 ## What is implemented today
 
 | Implemented capability | Evidence in the repository |
@@ -44,7 +71,11 @@ flowchart LR
 
 ## How AI models integrate with Baseer
 
-The current workers use synthetic detection functions, but the integration path is real and intentionally narrow:
+The original project architecture and the current public platform meet at the same conceptual boundary:
+
+> **Camera/input → CV model or worker → structured detection event → authenticated ingestion API → validation → PostgreSQL → business rules and alerts → dashboard, Telegram, or actuation**
+
+In the original project design, a real CV model performed inference at the camera/edge layer. In the current public repository, the application-side ingestion, validation, persistence, alerting, and dashboard components are executable, while the included workers use synthetic detection functions:
 
 1. A model worker performs inference on a camera frame, image, or event source.
 2. The worker produces a structured detection/event such as a defect result, attendance event, PPE state, or fire/smoke alert.
