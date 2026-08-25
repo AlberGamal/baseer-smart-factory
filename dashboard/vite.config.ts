@@ -6,5 +6,7 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    // Required for local development through a temporary proxied hostname.
+    allowedHosts: true,
   },
 });
